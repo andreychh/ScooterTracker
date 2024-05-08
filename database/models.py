@@ -16,13 +16,19 @@ class Scooter(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     model = db.Column(db.String(100), nullable=False)
-    # status = db.Column(db.String)
+    # state
 
     charge_data = db.relationship('ChargeData', back_populates='scooter')
     location_data = db.relationship('LocationData', back_populates='scooter')
 
     def __repr__(self):
         return '<Scooter %r>' % self.id
+
+    def to_json(self):
+        return {
+            'model': self.model,
+            # TODO: return last charge and locate data
+        }
 
 
 class ChargeData(db.Model):
@@ -38,6 +44,12 @@ class ChargeData(db.Model):
     def __repr__(self):
         return '<ChargeData %r>' % self.id
 
+    def to_json(self):
+        return {
+            'datetime': self.datetime,
+            'charge': self.charge,
+        }
+
 
 class LocationData(db.Model):
     __tablename__ = 'location_data'
@@ -52,3 +64,10 @@ class LocationData(db.Model):
 
     def __repr__(self):
         return '<LocationData %r>' % self.id
+
+    def to_json(self):
+        return {
+            'datetime': self.datetime,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+        }

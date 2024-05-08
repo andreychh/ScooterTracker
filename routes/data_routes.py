@@ -17,7 +17,7 @@ def get_charge_data(scooter_id):
         .limit(limit).all()
 
     if charge_data:
-        return jsonify({'charge_data': format_charge_data(charge_data)})
+        return jsonify({'charge_data': [data.to_json() for data in charge_data]})
     else:
         return jsonify({'error': 'Charge data not found'}), 404
 
@@ -49,7 +49,7 @@ def get_location_data(scooter_id):
         .limit(limit).all()
 
     if location_data:
-        return jsonify({'charge_data': format_location_data(location_data)})
+        return jsonify({'charge_data': [data.to_json() for data in location_data]})
     else:
         return jsonify({'error': 'Charge data not found'}), 404
 

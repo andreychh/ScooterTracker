@@ -16,16 +16,17 @@ def create_scooter():
     if 'model' not in data:
         return get_field_error('model')
 
-    db.session.add(Scooter(model=data['model']))
+    scooter = Scooter(model=data['model'])
+    db.session.add(scooter)
     db.session.commit()
 
-    return jsonify({'message': 'Scooter created successfully'}), 201
+    return jsonify({'id': scooter.id, 'message': 'Scooter created successfully'}), 201
 
 
 @bp.route('/scooters/<int:scooter_id>', methods=['GET'])
 def get_scooter(scooter_id):
     scooter = Scooter.query.get_or_404(scooter_id)
-    return jsonify({'id': scooter.id, 'model': scooter.model})  # TODO: return last charge and locate data
+    return jsonify(scooter.to_json())
 
 
 @bp.route('/scooters/<int:scooter_id>', methods=['DELETE'])

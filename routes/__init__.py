@@ -1,5 +1,5 @@
-from .user_routes import bp as user_bp
-from .data_routes import bp as data_bp
+from .common import bp as common_bp
+from .scooter_details import bp as scooter_details_bp
 
 
-__all__ = ['user_bp', 'data_bp']
+__all__ = ['common_bp', 'scooter_details_bp']

@@ -1,12 +1,9 @@
-import datetime as dt
+import datetime
+from typing import Type
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
 
-
-class Base(DeclarativeBase):
-    pass
-
+from .misc import Base, ScooterState, camel_to_snake
 
 db = SQLAlchemy(model_class=Base)
 
@@ -15,59 +12,75 @@ class Scooter(db.Model):
     __tablename__ = 'scooter'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    model = db.Column(db.String(100), nullable=False)
-    # state
+    model = db.Column(db.String(64), nullable=False)
+    state = db.Column(db.Enum(ScooterState), default=ScooterState.ACTIVE, nullable=False)
 
-    charge_data = db.relationship('ChargeData', back_populates='scooter')
-    location_data = db.relationship('LocationData', back_populates='scooter')
+    charge_data = db.relationship(
+        'ChargeData',
+        backref='scooter',
+        cascade='all, delete',
+        passive_deletes=True,
+        order_by=lambda: db.desc(ChargeData.recorded_at)
+    )
+    position_data = db.relationship(
+        'PositionData',
+        backref='scooter',
+        cascade='all, delete',
+        passive_deletes=True,
+        order_by=lambda: db.desc(PositionData.recorded_at)
+    )
 
-    def __repr__(self):
-        return '<Scooter %r>' % self.id
-
-    def to_json(self):
+    def to_dict(self) -> dict[str, ...]:
         return {
+            'id': self.id,
             'model': self.model,
-            # TODO: return last charge and locate data
+            'charge_data': self.charge_data[0].to_dict() if self.charge_data else None,
+            'position_data': self.position_data[0].to_dict() if self.position_data else None,
         }
 
 
-class ChargeData(db.Model):
-    __tablename__ = 'charge_data'
+class SensorData[T](db.Model):
+    __abstract__ = True
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    datetime = db.Column(db.DateTime, default=dt.datetime.now)
-    scooter_id = db.Column(db.Integer, db.ForeignKey('scooter.id'), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    scooter_id = db.Column(db.Integer, db.ForeignKey('scooter.id', ondelete='CASCADE'), nullable=False)
+    recorded_at = db.Column(db.DateTime, default=datetime.datetime.now, nullable=False)
+
+    @classmethod
+    @db.declared_attr
+    def __tablename__(cls) -> str:
+        return camel_to_snake(cls.__name__)
+
+    @classmethod
+    @db.declared_attr
+    def scooter(cls) -> db.RelationshipProperty:
+        return db.relationship('Scooter', backref=camel_to_snake(cls.__name__))
+
+    @classmethod
+    def get_data(cls: Type[T], scooter_id: int, limit: int | None = None) -> list[T]:
+        return cls.query.filter_by(scooter_id=scooter_id).order_by(cls.recorded_at.desc()).limit(limit).all()
+
+    def to_dict(self):
+        raise NotImplementedError("Method to_dict() must be implemented in subclasses.")
+
+
+class ChargeData(SensorData):
     charge = db.Column(db.Float, nullable=False)
 
-    scooter = db.relationship('Scooter', back_populates='charge_data')
-
-    def __repr__(self):
-        return '<ChargeData %r>' % self.id
-
-    def to_json(self):
+    def to_dict(self) -> dict[str, ...]:
         return {
-            'datetime': self.datetime,
+            'recorded_at': self.recorded_at,
             'charge': self.charge,
         }
 
 
-class LocationData(db.Model):
-    __tablename__ = 'location_data'
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    datetime = db.Column(db.DateTime, default=dt.datetime.now)
-    scooter_id = db.Column(db.Integer, db.ForeignKey('scooter.id'), nullable=False)
+class PositionData(SensorData):
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
 
-    scooter = db.relationship('Scooter', back_populates='location_data')
-
-    def __repr__(self):
-        return '<LocationData %r>' % self.id
-
-    def to_json(self):
+    def to_dict(self) -> dict[str, ...]:
         return {
-            'datetime': self.datetime,
+            'recorded_at': self.recorded_at,
             'latitude': self.latitude,
             'longitude': self.longitude,
         }

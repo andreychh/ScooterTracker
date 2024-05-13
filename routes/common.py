@@ -1,21 +1,23 @@
 from flask import Blueprint, request, jsonify, Response
 
-from database import db, Scooter, ScooterState
-from utils import check_json_fields, validate_state
+from database import db, Scooter, ScooterState, ChargeData
+from utils import check_json_fields, validate_state, validate_model
 
 bp = Blueprint('common', __name__)
 
 
 @bp.route('/scooters', methods=['POST'])
 @check_json_fields('model')
-def post_scooter() -> tuple[Response, int]:
+def add_scooter() -> tuple[Response, int]:
     data = request.get_json()
-    scooter = Scooter(model=data['model'])
+    model = data['model']
+    validate_model(model)
+    scooter = Scooter(model=model)
 
     if 'state' in data:
         state = data['state']
         validate_state(state)
-        scooter.state = state.upper()
+        scooter.state = ScooterState(state)
 
     db.session.add(scooter)
     db.session.commit()

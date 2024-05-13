@@ -7,37 +7,37 @@ from database import ChargeData, PositionData, ScooterState
 
 # Error Handling
 def get_json_error() -> tuple[Response, int]:
-    return jsonify({'error': 'Request must be in JSON format'}), 400
+    return jsonify({'error': 'Request must be in JSON format.'}), 400
 
 
 def get_field_error(field_name: str) -> tuple[Response, int]:
-    return jsonify({'error': f'Field {field_name} is required'}), 400
+    return jsonify({'error': f'Field {field_name} is required.'}), 400
 
 
 # Validation
 def validate_limit(limit: int):
     if not (limit is None or (isinstance(limit, int) and limit > 0)):
-        abort(400, description='Field limit must be a positive integer')
-
-
-def validate_charge_data(charge_data: list[ChargeData]):
-    if not charge_data:
-        abort(404, description='Charge data not found')
-
-
-def validate_position_data(position_data: list[PositionData]):
-    if not position_data:
-        abort(404, description='Position data not found')
+        abort(400, description='Invalid limit. The limit parameter must be a positive integer.')
 
 
 def validate_state(state):
     if state not in ScooterState:
-        abort(400, description='Invalid state. Acceptable values: Active, Inactive')
+        abort(400, description='Invalid state. The state parameter must be either "Active" or "Inactive".')
 
 
-def validate_model(model):  # TODO: write this
-    ...
-    # abort(400, description='Invalid model')
+def validate_model(model):
+    if not model or not isinstance(model, str):
+        abort(400, description='Invalid model. The model parameter must be a non-empty string.')
+
+
+def validate_charge_data(charge_data: list[ChargeData]):
+    if not charge_data:
+        abort(404, description='Charge data not found.')
+
+
+def validate_position_data(position_data: list[PositionData]):
+    if not position_data:
+        abort(404, description='Position data not found.')
 
 
 # Check

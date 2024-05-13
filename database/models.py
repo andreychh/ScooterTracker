@@ -18,22 +18,19 @@ class Scooter(db.Model):
     charge_data = db.relationship(
         'ChargeData',
         backref='scooter',
-        cascade='all, delete',
-        passive_deletes=True,
-        order_by=lambda: db.desc(ChargeData.recorded_at)
+        cascade='all, delete-orphan',
     )
     position_data = db.relationship(
         'PositionData',
         backref='scooter',
-        cascade='all, delete',
-        passive_deletes=True,
-        order_by=lambda: db.desc(PositionData.recorded_at)
+        cascade='all, delete-orphan',
     )
 
     def to_dict(self) -> dict[str, ...]:
         return {
             'id': self.id,
             'model': self.model,
+            'state': self.state.value,
             'charge_data': self.charge_data[0].to_dict() if self.charge_data else None,
             'position_data': self.position_data[0].to_dict() if self.position_data else None,
         }
@@ -54,7 +51,7 @@ class SensorData[T](db.Model):
     @classmethod
     @db.declared_attr
     def scooter(cls) -> db.RelationshipProperty:
-        return db.relationship('Scooter', backref=camel_to_snake(cls.__name__))
+        return db.relationship('Scooter', backref=cls.__tablename__)
 
     @classmethod
     def get_data(cls: Type[T], scooter_id: int, limit: int | None = None) -> list[T]:

@@ -31,8 +31,8 @@ class Scooter(db.Model):
             'id': self.id,
             'model': self.model,
             'state': self.state.value,
-            'charge_data': self.charge_data[0].to_dict() if self.charge_data else None,
-            'position_data': self.position_data[0].to_dict() if self.position_data else None,
+            'charge_data': self.charge_data[-1].to_dict() if self.charge_data else None,
+            'position_data': self.position_data[-1].to_dict() if self.position_data else None,
         }
 
 

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, Response
 
-from database import db, Scooter, ScooterState, ChargeData
-from utils import check_json_fields, validate_state, validate_model
+from app.database import db, Scooter, ScooterState
+from app.utils import check_json_fields, validate_state, validate_model
 
 bp = Blueprint('common', __name__)
 
@@ -10,13 +10,16 @@ bp = Blueprint('common', __name__)
 @check_json_fields('model')
 def add_scooter() -> tuple[Response, int]:
     data = request.get_json()
+
     model = data['model']
     validate_model(model)
+
     scooter = Scooter(model=model)
 
     if 'state' in data:
         state = data['state']
         validate_state(state)
+
         scooter.state = ScooterState(state)
 
     db.session.add(scooter)
@@ -29,8 +32,3 @@ def add_scooter() -> tuple[Response, int]:
 def get_active_scooters() -> tuple[Response, int]:
     active_scooters = Scooter.query.filter_by(state=ScooterState.ACTIVE).all()
     return jsonify([scooter.to_dict() for scooter in active_scooters]), 200
-
-
-@bp.route('/ping', methods=['GET'])
-def ping() -> tuple[Response, int]:
-    return jsonify({'message': 'pong!'}), 200

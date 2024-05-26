@@ -1,8 +1,17 @@
 from flask import Blueprint, request, jsonify, Response
 
-from database import db, ChargeData, PositionData, Scooter, ScooterState
-from utils import validate_limit, validate_charge_data, validate_position_data, validate_state, validate_model, \
-    check_json_fields
+from app.database import db, ChargeData, PositionData, Scooter, ScooterState
+from app.utils import (
+    check_json_fields,
+    validate_limit,
+    validate_charge,
+    validate_latitude,
+    validate_longitude,
+    validate_charge_data,
+    validate_position_data,
+    validate_model,
+    validate_state,
+)
 
 bp = Blueprint('scooter_details', __name__)
 
@@ -29,7 +38,11 @@ def get_charge_data(scooter_id: int) -> tuple[Response, int]:
 @check_json_fields('charge')
 def add_charge_data(scooter_id: int) -> tuple[Response, int]:
     data = request.get_json()
-    db.session.add(ChargeData(scooter_id=scooter_id, charge=data['charge']))
+
+    charge = data['charge']
+    validate_charge(charge)
+
+    db.session.add(ChargeData(scooter_id=scooter_id, charge=charge))
     db.session.commit()
 
     return jsonify({'message': 'Scooters charge data updated successfully'}), 201
@@ -51,7 +64,13 @@ def get_position_data(scooter_id: int) -> tuple[Response, int]:
 @check_json_fields('latitude', 'longitude')
 def add_position_data(scooter_id: int) -> tuple[Response, int]:
     data = request.get_json()
-    db.session.add(PositionData(scooter_id=scooter_id, latitude=data['latitude'], longitude=data['longitude']))
+
+    latitude = data['latitude']
+    validate_latitude(latitude)
+    longitude = data['longitude']
+    validate_longitude(longitude)
+
+    db.session.add(PositionData(scooter_id=scooter_id, latitude=latitude, longitude=longitude))
     db.session.commit()
 
     return jsonify({'message': 'Scooters position data updated successfully'}), 201
@@ -61,13 +80,14 @@ def add_position_data(scooter_id: int) -> tuple[Response, int]:
 @bp.route('/scooters/<int:scooter_id>/state', methods=['GET'])
 def get_state(scooter_id: int) -> tuple[Response, int]:
     scooter = Scooter.query.get(scooter_id)
-    return jsonify({'state': scooter.state}), 200
+    return jsonify({'state': scooter.state.value}), 200
 
 
 @bp.route('/scooters/<int:scooter_id>/state', methods=['PUT'])
 @check_json_fields('state')
 def update_state(scooter_id: int) -> tuple[Response, int]:
     data = request.get_json()
+
     state = data['state']
     validate_state(state)
 
@@ -89,6 +109,7 @@ def get_model(scooter_id: int) -> tuple[Response, int]:
 @check_json_fields('model')
 def update_model(scooter_id: int) -> tuple[Response, int]:
     data = request.get_json()
+
     model = data['model']
     validate_model(model)
 

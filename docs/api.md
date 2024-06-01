@@ -27,15 +27,15 @@
 
 ```text
 {
-    "recorded_at": String,
-    "charge": Float
+    "charge": Float,
+    "recorded_at": String
 }
 ```
 
 **Параметры:**
 
-- `recorded_at` (String): Дата и время, когда были получены данные.
 - `charge` (Float): Уровень заряда самоката в диапазоне от 0.0 до 1.0.
+- `recorded_at` (String): Дата и время, когда были получены данные.
 
 ### PositionData
 
@@ -45,17 +45,17 @@
 
 ```text
 {
-    "recorded_at": String,
     "latitude": Float,
-    "longitude": Float
+    "longitude": Float,
+    "recorded_at": String
 }
 ```
 
 **Параметры:**
 
-- `recorded_at` (String): Дата и время, когда были получены данные.
 - `latitude` (Float): Широта положения самоката в диапазоне от -90.0 до 90.0.
 - `longitude` (Float): Долгота положения самоката в диапазоне от -180.0 до 180.0.
+- `recorded_at` (String): Дата и время, когда были получены данные.
 
 ### Scooter
 
@@ -121,6 +121,27 @@ POST /scooters
 
 - 400 Bad Request: Некорректные данные в запросе.
 
+**Пример:**
+
+Запрос:
+
+```shell
+curl --location 'http://127.0.0.1:5000/scooters' \
+--header 'Content-Type: application/json' \
+--data '{
+    "model": "modelA"
+}'
+```
+
+Ответ:
+
+```json
+{
+  "id": 1,
+  "message": "Scooter created successfully"
+}
+```
+
 ### Удаление самоката
 
 **Описание:**
@@ -147,6 +168,22 @@ DELETE /scooters/<id: Integer>
   ```
 
 - 404 Not Found: Самокат не найден.
+
+**Пример:**
+
+Запрос:
+
+```shell
+curl --location --request DELETE 'http://127.0.0.1:5000/scooters/1'
+```
+
+Ответ:
+
+```json
+{
+  "message": "Scooter deleted successfully"
+}
+```
 
 ### Получение самоката
 
@@ -176,6 +213,33 @@ GET /scooters/<id: Integer>
 
 - 400 Bad Request: Некорректные данные в запросе.
 
+**Пример:**
+
+Запрос:
+
+```shell
+curl --location 'http://127.0.0.1:5000/scooters/1'
+```
+
+Ответ:
+
+```json
+{
+  "charge_data": {
+    "charge": 0.14837290965341576,
+    "recorded_at": "Sat, 01 Jun 2024 09:22:47 GMT"
+  },
+  "id": 1,
+  "model": "ModelB",
+  "position_data": {
+    "latitude": -69.67629161774954,
+    "longitude": 62.67096369389451,
+    "recorded_at": "Sat, 01 Jun 2024 09:22:45 GMT"
+  },
+  "state": "Active"
+}
+```
+
 ### Получение активных самокатов
 
 **Описание:**
@@ -199,6 +263,49 @@ GET /scooters/active
     ```
   Параметры:
     - `scooter` ([`Scooter`](#scooter)): Объект, представляющий самокат.
+
+**Пример:**
+
+Запрос:
+
+```shell
+curl --location 'http://127.0.0.1:5000/scooters/active'
+```
+
+Ответ:
+
+```json
+[
+  {
+    "charge_data": {
+      "charge": 0.13398888522589325,
+      "recorded_at": "Sat, 01 Jun 2024 09:25:53 GMT"
+    },
+    "id": 1,
+    "model": "ModelA",
+    "position_data": {
+      "latitude": -69.68489369466687,
+      "longitude": 62.70364856171199,
+      "recorded_at": "Sat, 01 Jun 2024 09:25:55 GMT"
+    },
+    "state": "Active"
+  },
+  {
+    "charge_data": {
+      "charge": 0.8465053884931114,
+      "recorded_at": "Sat, 01 Jun 2024 09:25:53 GMT"
+    },
+    "id": 2,
+    "model": "modelC",
+    "position_data": {
+      "latitude": 64.07187294016985,
+      "longitude": 129.87581332512676,
+      "recorded_at": "Sat, 01 Jun 2024 09:25:55 GMT"
+    },
+    "state": "Active"
+  }
+]
+```
 
 ### Получение данных о заряде самоката
 
@@ -232,6 +339,35 @@ GET /scooters/<id: Integer>/charge?limit=<limit: Integer>
 
 - 404 Not Found: Данные не найдены.
 
+**Пример:**
+
+Запрос:
+
+```shell
+curl --location 'http://127.0.0.1:5000/scooters/1/charge?limit=3'
+```
+
+Ответ:
+
+```json
+{
+  "charge_data": [
+    {
+      "charge": 0.11521077611355196,
+      "recorded_at": "Sat, 01 Jun 2024 09:27:19 GMT"
+    },
+    {
+      "charge": 0.20771469058526532,
+      "recorded_at": "Sat, 01 Jun 2024 09:27:14 GMT"
+    },
+    {
+      "charge": 0.30315837484413977,
+      "recorded_at": "Sat, 01 Jun 2024 09:27:09 GMT"
+    }
+  ]
+}
+```
+
 ### Получение данных о положении самоката
 
 **Описание:**
@@ -264,17 +400,31 @@ GET /scooters/<id: Integer>/position?limit=<limit: Integer>
 
 - 404 Not Found: Данные не найдены.
 
+**Пример:**
+
+Запрос:
+
 ```shell
-curl --location 'http://127.0.0.1:5000/scooters/1'
+curl --location 'http://127.0.0.1:5000/scooters/2/position?limit=2'
 ```
 
+Ответ:
+
 ```json
-[
-  {
-    "charge": 0.4464277904972725,
-    "recorded_at": "Mon, 13 May 2024 18:32:41 GMT"
-  }
-]
+{
+  "position_data": [
+    {
+      "latitude": 64.07327956193609,
+      "longitude": 129.8678509974332,
+      "recorded_at": "Sat, 01 Jun 2024 09:28:44 GMT"
+    },
+    {
+      "latitude": 64.07089028318008,
+      "longitude": 129.86492903934774,
+      "recorded_at": "Sat, 01 Jun 2024 09:28:37 GMT"
+    }
+  ]
+}
 ```
 
 ### Получение модели самоката
@@ -306,17 +456,20 @@ GET /scooters/<id: Integer>/model
 
 - 404 Not Found: Данные не найдены.
 
+**Пример:**
+
+Запрос:
+
 ```shell
-curl --location 'http://127.0.0.1:5000/scooters/1'
+curl --location 'http://127.0.0.1:5000/scooters/1/model'
 ```
 
+Ответ:
+
 ```json
-[
-  {
-    "charge": 0.4464277904972725,
-    "recorded_at": "Mon, 13 May 2024 18:32:41 GMT"
-  }
-]
+{
+  "model": "ModelA"
+}
 ```
 
 ### Обновление модели самоката
@@ -337,7 +490,7 @@ PUT /scooters/<id: Integer>/model
 
 **Ответ:**
 
-- 200 OK: Запрос выполнен успешно.
+- 200 OK: Модель самоката обновлена успешно.
   ```text
   {
       "message": "Scooters model updated successfully"
@@ -345,6 +498,26 @@ PUT /scooters/<id: Integer>/model
   ```
 
 - 404 Not Found: Данные не найдены.
+
+**Пример:**
+
+Запрос:
+
+```shell
+curl --location --request PUT 'http://127.0.0.1:5000/scooters/1/model' \
+--header 'Content-Type: application/json' \
+--data '{
+	"model": "ModelB"
+}'
+```
+
+Ответ:
+
+```json
+{
+  "message": "Scooters model updated successfully"
+}
+```
 
 ### Получение состояния самоката
 
@@ -375,17 +548,20 @@ GET /scooters/<id: Integer>/state
 
 - 404 Not Found: Данные не найдены.
 
+**Пример:**
+
+Запрос:
+
 ```shell
-curl --location 'http://127.0.0.1:5000/scooters/1'
+curl --location 'http://127.0.0.1:5000/scooters/1/state'
 ```
 
+Ответ:
+
 ```json
-[
-  {
-    "charge": 0.4464277904972725,
-    "recorded_at": "Mon, 13 May 2024 18:32:41 GMT"
-  }
-]
+{
+  "state": "Active"
+}
 ```
 
 ### Обновление состояния самоката
@@ -406,7 +582,7 @@ PUT /scooters/<id: Integer>/state
 
 **Ответ:**
 
-- 200 OK: Запрос выполнен успешно.
+- 200 OK: Состояние самоката обновлено успешно.
   ```text
   {
       "message": "Scooters state updated successfully"
@@ -416,4 +592,22 @@ PUT /scooters/<id: Integer>/state
 
 - 404 Not Found: Данные не найдены.
 
- 
+**Пример:**
+
+Запрос:
+
+```shell
+curl --location --request PUT 'http://127.0.0.1:5000/scooters/1/state' \
+--header 'Content-Type: application/json' \
+--data '{
+	"state": "Inactive"
+}'
+```
+
+Ответ:
+
+```json
+{
+  "message": "Scooters state updated successfully"
+}
+```

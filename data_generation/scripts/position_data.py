@@ -50,7 +50,7 @@ def update_position_loop():
     logging.info('Starting update_position loop')
     while True:
         main()
-        time.sleep(10)
+        time.sleep(7)
 
 
 if __name__ == '__main__':
